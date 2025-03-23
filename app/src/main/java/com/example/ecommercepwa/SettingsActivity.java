@@ -3,16 +3,15 @@ package com.example.ecommercepwa;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.textfield.TextInputEditText;
-
 public class SettingsActivity extends AppCompatActivity {
 
-    private TextInputEditText urlEditText;
+    private TextView urlTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,37 +26,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
         
         // Initialize UI components
-        urlEditText = findViewById(R.id.urlEditText);
-        Button saveButton = findViewById(R.id.saveButton);
+        urlTextView = findViewById(R.id.urlTextView);
         
         // Load current URL from preferences
         String currentUrl = ConfigManager.getWebUrl(this);
-        urlEditText.setText(currentUrl);
-        
-        // Set save button click listener
-        saveButton.setOnClickListener(v -> saveSettings());
-    }
-    
-    private void saveSettings() {
-        String newUrl = urlEditText.getText().toString().trim();
-        
-        // Validate URL (basic validation)
-        if (newUrl.isEmpty()) {
-            urlEditText.setError("URL cannot be empty");
-            return;
-        }
-        
-        // Add http:// if protocol is missing
-        if (!newUrl.startsWith("http://") && !newUrl.startsWith("https://")) {
-            newUrl = "https://" + newUrl;
-            urlEditText.setText(newUrl);
-        }
-        
-        // Save URL to preferences
-        ConfigManager.saveWebUrl(this, newUrl);
-        
-        Toast.makeText(this, "Settings saved. Restart the app to apply changes.", Toast.LENGTH_SHORT).show();
-        finish();
+        urlTextView.setText("Web URL: " + currentUrl);
     }
     
     @Override

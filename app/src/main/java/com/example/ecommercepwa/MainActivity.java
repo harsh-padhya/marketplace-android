@@ -2,12 +2,15 @@ package com.example.ecommercepwa;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.ServiceWorkerClient;
 import android.webkit.ServiceWorkerController;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -17,6 +20,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -28,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
     private View noInternetLayout;
     private Button retryButton;
     private String webUrl;
+    
+    private ValueCallback<Uri[]> filePathCallback;
+    private final static int FILE_CHOOSER_RESULT_CODE = 1;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -38,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
         // Set up toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        
+        // Hide the toolbar as per requirement
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
         
         // Get web URL from configuration
         webUrl = ConfigManager.getWebUrl(this);
@@ -83,6 +95,28 @@ public class MainActivity extends AppCompatActivity {
         
         // Enable Geolocation
         webSettings.setGeolocationEnabled(true);
+        
+        // Enable file access for media uploads
+        webSettings.setAllowFileAccess(true);
+        webSettings.setAllowContentAccess(true);
+        
+        // Handle file uploads
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
+                                             FileChooserParams fileChooserParams) {
+                MainActivity.this.filePathCallback = filePathCallback;
+                
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    startActivityForResult(intent, FILE_CHOOSER_RESULT_CODE);
+                } catch (Exception e) {
+                    filePathCallback.onReceiveValue(null);
+                    return false;
+                }
+                return true;
+            }
+        });
         
         // Enable PWA features by setting ServiceWorkerClient
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -130,7 +164,35 @@ public class MainActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
             
             // Show toast message
-            Toast.makeText(this, R.string.no_internet, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.no_internet, Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == FILE_CHOOSER_RESULT_CODE) {
+            if (filePathCallback != null) {
+                Uri[] results = null;
+                
+                // Check if response is positive
+                if (resultCode == RESULT_OK && data != null) {
+                    String dataString = data.getDataString();
+                    if (dataString != null) {
+                        results = new Uri[]{Uri.parse(dataString)};
+                    } else if (data.getClipData() != null) {
+                        // Handle multiple files selection
+                        int count = data.getClipData().getItemCount();
+                        results = new Uri[count];
+                        for (int i = 0; i < count; i++) {
+                            results[i] = data.getClipData().getItemAt(i).getUri();
+                        }
+                    }
+                }
+                filePathCallback.onReceiveValue(results);
+                filePathCallback = null;
+            }
         }
     }
     
