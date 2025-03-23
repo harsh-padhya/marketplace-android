@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.CookieManager;
 import android.webkit.ServiceWorkerClient;
 import android.webkit.ServiceWorkerController;
 import android.webkit.ValueCallback;
@@ -25,6 +26,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
@@ -41,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        // Check for config updates from remote server
+        ConfigManager.checkForConfigUpdate(this);
         
         // Set up toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -84,14 +90,28 @@ public class MainActivity extends AppCompatActivity {
         // Enable JavaScript
         webSettings.setJavaScriptEnabled(true);
         
-        // Enable DOM storage
+        // Enable DOM storage for session persistence
         webSettings.setDomStorageEnabled(true);
         
         // Enable database storage
         webSettings.setDatabaseEnabled(true);
         
-        // Set cache mode - use cache when available, else load from network
+        // Configure cache settings for better performance
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        
+        // Set cache directory and enable caching
+        File cachePath = new File(getApplicationContext().getCacheDir(), "webviewcache");
+        if (!cachePath.exists()) {
+            cachePath.mkdirs();
+        }
+        
+        // Enable offline caching of resources
+        webSettings.setAllowFileAccess(true);
+        
+        // Enable cookies and session persistence
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        cookieManager.setAcceptThirdPartyCookies(webView, true);
         
         // Enable Geolocation
         webSettings.setGeolocationEnabled(true);
@@ -99,6 +119,10 @@ public class MainActivity extends AppCompatActivity {
         // Enable file access for media uploads
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
+        
+        // Enable better caching for static assets
+        webSettings.setLoadWithOverviewMode(true);
+        webSettings.setUseWideViewPort(true);
         
         // Handle file uploads
         webView.setWebChromeClient(new WebChromeClient() {
@@ -143,6 +167,9 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
                 // Hide refresh indicator when page finishes loading
                 swipeRefreshLayout.setRefreshing(false);
+                
+                // Save cookies for session persistence
+                CookieManager.getInstance().flush();
             }
         });
     }
@@ -223,6 +250,24 @@ public class MainActivity extends AppCompatActivity {
             webView.goBack();
         } else {
             super.onBackPressed();
+        }
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Ensure cookies and session data are saved when app is paused
+        CookieManager.getInstance().flush();
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Check if the URL has been updated during app pause
+        String updatedUrl = ConfigManager.getWebUrl(this);
+        if (!webUrl.equals(updatedUrl)) {
+            webUrl = updatedUrl;
+            loadWebView();
         }
     }
 } 

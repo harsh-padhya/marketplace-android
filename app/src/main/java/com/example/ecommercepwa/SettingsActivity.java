@@ -30,7 +30,7 @@ public class SettingsActivity extends AppCompatActivity {
         
         // Load current URL from preferences
         String currentUrl = ConfigManager.getWebUrl(this);
-        urlTextView.setText("Web URL: " + currentUrl);
+        urlTextView.setText(getString(R.string.web_url_format, currentUrl));
     }
     
     @Override

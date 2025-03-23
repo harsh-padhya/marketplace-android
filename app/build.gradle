@@ -11,11 +11,11 @@ if (signingPropsFile.exists()) {
 
 android {
     namespace 'com.example.ecommercepwa'
-    compileSdkVersion 33
+    compileSdkVersion 34
     defaultConfig {
         applicationId "com.example.ecommercepwa"
         minSdkVersion 23
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -24,7 +24,7 @@ android {
     signingConfigs {
         release {
             if (signingPropsFile.exists()) {
-                storeFile file(signingProps['storeFile'])
+                storeFile file(rootDir.absolutePath + '/' + signingProps['storeFile'])
                 storePassword signingProps['storePassword']
                 keyAlias signingProps['keyAlias']
                 keyPassword signingProps['keyPassword']
@@ -34,7 +34,8 @@ android {
     
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
@@ -43,12 +44,18 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    
+    // Enable lint options to find and fix potential issues
+    lintOptions {
+        checkReleaseBuilds true
+        abortOnError false
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

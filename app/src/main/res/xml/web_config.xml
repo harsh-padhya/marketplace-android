@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Configure domain-specific security configuration if using HTTPS -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Add your specific domains here if you know them -->
+        <domain includeSubdomains="true">oyekart.com</domain>
+        <domain includeSubdomains="true">example.com</domain>
+        <!-- Trust system certificates -->
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+    
+    <!-- Default configuration uses cleartextTrafficPermitted=true to maintain backward compatibility -->
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
