@@ -4,6 +4,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    
+    <!-- Background with gradient -->
+    <path
+        android:pathData="M0,0h108v108h-108z"
+        android:fillColor="#EEEEEE"/>
+    
+    <path
+        android:pathData="M18,18L90,18A16,16 0,0 1,106 34L106,74A16,16 0,0 1,90 90L18,90A16,16 0,0 1,2 74L2,34A16,16 0,0 1,18 18z"
+        android:fillColor="#00CCFF"/>
+    
     <!-- Shopping bag -->
     <path
         android:pathData="M36,36L72,36A4,4 0,0 1,76 40L76,72A4,4 0,0 1,72 76L36,76A4,4 0,0 1,32 72L32,40A4,4 0,0 1,36 36z"
@@ -31,4 +41,4 @@
         android:pathData="M32,71h44"
         android:strokeWidth="3"
         android:strokeColor="#FFFFFF"/>
-</vector>
+</vector> 
